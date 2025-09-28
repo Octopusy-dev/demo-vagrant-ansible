@@ -11,29 +11,46 @@ Ce projet démontre l'utilisation de Vagrant avec Ansible pour provisionner auto
 ## Structure du projet
 
 ```
-├── Vagrantfile          # Configuration de la VM Vagrant
+├── Vagrantfile          # Configuration VM avec provisioning Ansible (par défaut)
+├── Vagrantfile.shell    # Configuration VM avec provisioning Shell
 ├── dockerfile           # Alternative Docker (optionnel)
 ├── scripts/
 │   ├── provision.yml    # Playbook Ansible pour le provisioning
-│   └── provision.sh     # Script shell alternatif (si nécessaire)
+│   └── provision.sh     # Script shell pour le provisioning
 └── publish/             # Dossier où sera publié l'API .NET (généré automatiquement)
 ```
 
 ## Utilisation
 
-### 1. Démarrage de la VM avec provisioning Ansible
+Vous avez le choix entre deux méthodes de provisioning :
+
+### Option 1 : Provisioning avec Ansible (par défaut)
 
 ```bash
-# Démarrer et provisionner la VM
+# Démarrer et provisionner la VM avec Ansible
 vagrant up
 ```
 
-Cette commande va :
+### Option 2 : Provisioning avec script Shell
+
+```bash
+# Utiliser le Vagrantfile alternatif avec script shell
+cp Vagrantfile.shell Vagrantfile
+vagrant up
+```
+
+Ou directement :
+```bash
+# Démarrer avec le Vagrantfile shell
+VAGRANT_VAGRANTFILE=Vagrantfile.shell vagrant up
+```
+
+Ces commandes vont :
 - Télécharger l'image Ubuntu 20.04 LTS si nécessaire
 - Créer la VM avec 4 Go de RAM et 2 CPUs
-- Exécuter le playbook Ansible `scripts/provision.yml` qui :
+- Exécuter soit le playbook Ansible `scripts/provision.yml` soit le script shell `scripts/provision.sh` qui :
   - Met à jour le système
-  - Installe .NET SDK 8
+  - Installe .NET SDK 8 via snap
   - Crée un projet API Hello World
   - Publie l'API en mode Release
   - Configure un service systemd pour l'API
@@ -84,6 +101,24 @@ sudo journalctl -u dotnet-hello -f
 sudo systemctl restart dotnet-hello
 ```
 
+## Différences entre les approches
+
+### Ansible vs Script Shell
+
+| Aspect | Ansible | Script Shell |
+|--------|---------|-------------|
+| **Complexité** | Plus complexe, syntaxe YAML | Plus simple, bash standard |
+| **Idempotence** | Intégrée (vérifie avant d'agir) | Manuelle (avec conditions if) |
+| **Lisibilité** | Très structurée et déclarative | Procédurale, plus directe |
+| **Maintenance** | Plus facile pour projets complexes | Plus facile pour scripts simples |
+| **Dépendances** | Nécessite Ansible | Bash disponible partout |
+| **Performances** | Peut être plus lent | Plus rapide à l'exécution |
+
+### Quand utiliser quoi ?
+
+- **Ansible** : Projets complexes, équipes, infrastructure déclarative
+- **Script Shell** : Prototypes rapides, simplicité, environnements contraints
+
 ## Configuration Ansible
 
 Le fichier `scripts/provision.yml` contient le playbook Ansible qui :
@@ -97,6 +132,21 @@ Le fichier `scripts/provision.yml` contient le playbook Ansible qui :
 7. **Publie l'API** en mode Release
 8. **Configure un service systemd** pour auto-démarrage
 9. **Démarre le service** automatiquement
+
+## Configuration Script Shell
+
+Le fichier `scripts/provision.sh` contient le script bash qui fait exactement les mêmes opérations que le playbook Ansible :
+
+1. **Met à jour le système** : `apt update`
+2. **Installe les dépendances** : wget, apt-transport-https, software-properties-common
+3. **Configure le repository Microsoft** pour .NET
+4. **Installe .NET SDK 8** via snap (identique à Ansible)
+5. **Crée le projet API** : `dotnet new webapi`
+6. **Génère un Program.cs minimal** avec endpoint Hello World
+7. **Publie l'API** en mode Release
+8. **Configure un service systemd** pour auto-démarrage
+9. **Démarre le service** automatiquement
+10. **Affiche le statut** du service
 
 ## Redirection de ports
 
