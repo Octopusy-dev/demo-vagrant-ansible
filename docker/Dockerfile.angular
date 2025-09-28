@@ -3,11 +3,11 @@ FROM node:18-alpine AS build
 
 WORKDIR /app
 
-# Copier package.json et package-lock.json
-COPY TodoAngularApp/package*.json ./
+# Copier package.json
+COPY TodoAngularApp/package.json ./
 
-# Installer les dépendances
-RUN npm ci --only=production
+# Installer les dépendances (toutes les dépendances pour le build)
+RUN npm install
 
 # Copier le code source
 COPY TodoAngularApp/ .
