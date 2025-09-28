@@ -1,0 +1,59 @@
+/* You can add global styles to this file, and also import other style files */
+body {
+  background-color: #f8f9fa;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.todo-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.todo-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #495057;
+}
+
+.todo-card {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border: none;
+}
+
+.todo-item {
+  transition: all 0.2s ease-in-out;
+}
+
+.todo-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+.completed-todo {
+  opacity: 0.7;
+  text-decoration: line-through;
+}
+
+.btn-action {
+  margin: 0 0.25rem;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6c757d;
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}

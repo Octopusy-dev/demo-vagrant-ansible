@@ -1,0 +1,85 @@
+- name: Provision Ubuntu VM with .NET 8 API
+  hosts: all
+  become: yes
+  tasks:
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install dependencies
+      apt:
+        name:
+          - wget
+          - apt-transport-https
+          - software-properties-common
+        state: present
+
+    - name: Download Microsoft packages
+      get_url:
+        url: https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+        dest: /tmp/packages-microsoft-prod.deb
+
+    - name: Install Microsoft package
+      apt:
+        deb: /tmp/packages-microsoft-prod.deb
+
+    - name: Install .NET SDK 8 via snap
+      snap:
+        name: dotnet-sdk
+        classic: yes
+        channel: 8.0/stable
+        state: present
+
+    - name: Create alias for dotnet
+      command: snap alias dotnet-sdk.dotnet dotnet
+      args:
+        creates: /var/snap/bin/dotnet
+
+    - name: Create API project if it does not exist
+      command: dotnet new webapi -o /vagrant/HelloApi --no-https
+      args:
+        creates: /vagrant/HelloApi
+
+    - name: Write minimal Program.cs
+      copy:
+        dest: /vagrant/HelloApi/Program.cs
+        content: |
+          var builder = WebApplication.CreateBuilder(args);
+          var app = builder.Build();
+          app.MapGet("/", () => "Hello World from .NET 8 + Ansible (published)!");
+          app.Run();
+
+    - name: Publish the API in Release mode
+      command: dotnet publish -c Release -o /vagrant/publish /vagrant/HelloApi
+      args:
+        creates: /vagrant/publish/HelloApi.dll
+
+    - name: Create systemd service for the published API
+      copy:
+        dest: /etc/systemd/system/dotnet-hello.service
+        content: |
+          [Unit]
+          Description=Hello World .NET 8 API
+          After=network.target
+
+          [Service]
+          WorkingDirectory=/vagrant/publish
+          ExecStart=/snap/dotnet-sdk/current/dotnet /vagrant/publish/HelloApi.dll --urls http://0.0.0.0:5000
+          Restart=always
+          RestartSec=5
+          KillSignal=SIGINT
+          SyslogIdentifier=dotnet-hello
+          User=vagrant
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd
+      command: systemctl daemon-reload
+
+    - name: Enable and start API service
+      systemd:
+        name: dotnet-hello
+        enabled: yes
+        state: started

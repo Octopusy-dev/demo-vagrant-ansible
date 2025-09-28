@@ -1,0 +1,31 @@
+# Stage 1: Build
+FROM node:18-alpine AS build
+
+WORKDIR /app
+
+# Copier package.json et package-lock.json
+COPY TodoAngularApp/package*.json ./
+
+# Installer les dépendances
+RUN npm ci --only=production
+
+# Copier le code source
+COPY TodoAngularApp/ .
+
+# Construire l'application
+RUN npm run build:prod
+
+# Stage 2: Serve
+FROM nginx:alpine AS runtime
+
+# Copier la configuration nginx personnalisée
+COPY TodoAngularApp/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copier les fichiers buildés depuis l'étape de build
+COPY --from=build /app/dist/todo-angular-app /usr/share/nginx/html
+
+# Exposer le port 80
+EXPOSE 80
+
+# Démarrer nginx
+CMD ["nginx", "-g", "daemon off;"]
