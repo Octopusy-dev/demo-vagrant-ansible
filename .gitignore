@@ -593,4 +593,16 @@ FodyWeavers.xsd
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio
 
+### IDE Configuration ###
+.vscode/
+.idea/
+
+### Project specific ###
+# Scripts de nettoyage temporaires
+clean-*.ps1
+paths-to-remove.txt
+
+# Fichiers de solution non nécessaires
+*.sln
+
 # End of https://www.toptal.com/developers/gitignore/api/vagrant,ansible,csharp,visualstudio
