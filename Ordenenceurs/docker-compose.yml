@@ -18,18 +18,22 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "2222:22"
+      - "2223:22"
     volumes:
       - gitlab_config:/etc/gitlab
       - gitlab_logs:/var/log/gitlab
       - gitlab_data:/var/opt/gitlab
+      - ../ssl:/etc/gitlab/ssl:ro
     restart: unless-stopped
     environment:
       GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://localhost'
+        external_url 'https://localhost'
         gitlab_rails['gitlab_shell_ssh_port'] = 2222
     networks:
       - ordenanceur_net
+
+    # Montage du dossier SSL de l'hôte (à créer si besoin)
+    # Placez vos certificats dans ../ssl/localhost.crt et ../ssl/localhost.key
 
 volumes:
   jenkins_home:
